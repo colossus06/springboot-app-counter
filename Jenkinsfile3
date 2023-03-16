@@ -48,7 +48,7 @@ pipeline{
                 docker.withRegistry( 'http://'+registry, registryCredentials ) {
                 dockerImage.push(env.BUILD_ID)
                 sh'''
-                docker rmi ${imageName}:{BUILD_ID}
+                docker rmi "${imageName}:{BUILD_ID}"
                 '''
             }
             }
