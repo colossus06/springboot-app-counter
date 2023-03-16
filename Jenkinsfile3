@@ -58,8 +58,10 @@ pipeline{
             steps{
                 script{
                     dir('kubernetes/myapp/') {
-                        // run a policy check against kubernetes files
-                        sh'helm datree test .'
+                        withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {
+                            // run a policy check against kubernetes files
+                            sh'helm datree test .'lock
+                        }
                     }
 
                 }
