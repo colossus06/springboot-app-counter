@@ -2,12 +2,10 @@ pipeline{
     agent any
     // tagging builds with build id
     environment {
-        VERSION = "${env.BUILD_ID}"
         imageName = "springbootapp"
         registryCredentials = "nexus"
         registry = "127.0.0.1:8086/"
         dockerImage = ''
-        imageFull= "${imageName}:${BUILD_ID}"
     }
     tools {
         maven "maven3.9"
