@@ -7,6 +7,7 @@ pipeline{
         registryCredentials = "nexus"
         registry = "127.0.0.1:8086/"
         dockerImage = ''
+        imageFull= "${imageName}:${BUILD_ID}"
     }
     tools {
         maven "maven3.9"
@@ -47,9 +48,7 @@ pipeline{
             script {
                 docker.withRegistry( 'http://'+registry, registryCredentials ) {
                 dockerImage.push(env.BUILD_ID)
-                sh'''
-                docker rmi "${imageName}:{BUILD_ID}"
-                '''
+                sh' docker rmi ${imageFull}'
             }
             }
         }
