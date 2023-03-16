@@ -58,16 +58,21 @@ pipeline{
             steps{
                 script{
                     dir('kubernetes/myapp/') {
-                        withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {
-                            // run a policy check against kubernetes files
-                            sh'helm datree test .'lock
+                        withEnv(['DATREE_TOKEN=1eac0b97-8252-4d88-bc19-23118f8f3409']) {
+                            sh 'datree test .'
                         }
                     }
-
+                    // withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {
+                    //     dir('kubernetes/myapp/') {
+                    //         // run a policy check against kubernetes files
+                    //         sh'helm datree test .'
+                    //         }
+                    //     }
                 }
             }
         }
     }
+
     post {
 		always {
 			mail bcc: '', body: "<br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'denizkavuk86@gmail.com', mimeType: 'text/html', replyTo: '', subject: "${currentBuild.result} CI: Project name -> ${env.JOB_NAME}", to: "denizkavuk86@gmail.com";  
