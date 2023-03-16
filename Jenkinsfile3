@@ -57,17 +57,17 @@ pipeline{
         stage("identifying misconfigurations"){
             steps{
                 script{
-                    dir('kubernetes/myapp/') {
-                        withEnv(['DATREE_TOKEN=1eac0b97-8252-4d88-bc19-23118f8f3409']) {
-                            sh 'helm datree test .'
-                        }
-                    }
-                    // withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {
-                    //     dir('kubernetes/myapp/') {
-                    //         // run a policy check against kubernetes files
-                    //         sh'helm datree test .'
-                    //         }
+                    // dir('kubernetes/myapp/') {
+                    //     withEnv(['DATREE_TOKEN=1eac0b97-8252-4d88-bc19-23118f8f3409']) {
+                    //         sh 'helm datree test .'
                     //     }
+                    // }
+                    withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {
+                        dir('kubernetes/myapp/') {
+                            // run a policy check against kubernetes files
+                            sh'helm datree test .'
+                            }
+                        }
                 }
             }
         }
