@@ -42,17 +42,28 @@ pipeline{
 
         // Uploading Docker images into Nexus Registry
         stage('Uploading to Nexus') {
-        steps{
-            script {
-                docker.withRegistry('http://'+registry, registryCredentials) {
-                def customImage = docker.build("${imageName}:${env.BUILD_ID}")
-                /* Push the container to the custom Registry */
-                customImage.push()
-                // docker.withRegistry( 'http://'+registry, registryCredentials ) {
-                // dockerImage.push('env.BUILD_ID')
-            }
+            steps{
+                script {
+                    docker.withRegistry('http://'+registry, registryCredentials) {
+                    def customImage = docker.build("${imageName}:${env.BUILD_ID}")
+                    /* Push the container to the custom Registry */
+                    customImage.push()
+                    // docker.withRegistry( 'http://'+registry, registryCredentials ) {
+                    // dockerImage.push('env.BUILD_ID')
+                    }
+                }
             }
         }
+        stage("identifying misconfigurations"){
+            steps{
+                script{
+                    dir('kubernetes/myapp/') {
+                        // run a policy check against kubernetes files
+                        sh'helm datree test .'
+                    }
+
+                }
+            }
         }
     }
     post {
