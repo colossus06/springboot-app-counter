@@ -44,11 +44,13 @@ pipeline{
         // Uploading Docker images into Nexus Registry
         stage('Uploading to Nexus') {
         steps{
-            String imageFull = "${imageName}:${BUILD_ID}"
+            String 
             script {
                 docker.withRegistry( 'http://'+registry, registryCredentials ) {
                 dockerImage.push(env.BUILD_ID)
-                sh 'docker rmi ${imageFull}'
+                sh'''
+                docker rmi ${imageName}:{BUILD_ID}
+                '''
             }
             }
         }
