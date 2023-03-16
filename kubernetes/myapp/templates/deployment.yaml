@@ -5,6 +5,9 @@ metadata:
   labels:
     {{- include "myapp.labels" . | nindent 4 }}
 spec:
+  securityContext:
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
