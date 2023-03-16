@@ -1,0 +1,63 @@
+pipeline{
+    agent any
+    // tagging builds with build id
+    environment {
+        VERSION = "${env.BUILD_ID}"
+    }
+    tools {
+        maven "maven3.9"
+    }
+    stages {
+        stage ('Initialize') {
+            steps {
+                sh '''
+                    echo "PATH = ${PATH}"
+                    echo "M2_HOME = ${M2_HOME}"
+                ''' 
+        }
+    }
+        stage ('Build'){
+            steps{
+                script{
+                    echo "Testing the connection"
+                }
+            }
+        }
+        stage("build & SonarQube analysis") {
+            steps {
+                script{
+                    withSonarQubeEnv(credentialsId: 'sonar-token') {
+                    sh 'mvn clean package sonar:sonar'
+              }
+            }
+
+            }
+          }
+        stage("Quality Gate Status"){
+            steps{
+                script{
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+                }
+            }
+        }
+        stage("Docekr build-push nexus"){
+            steps{
+                script{
+                    withCredentials([string(credentialsId: 'nexus-cred', variable: 'nexus-creds')]) {
+                    sh'''
+                    docker build -t 127.0.0.1:8086/springbootapp:${VERSION} .
+                    
+                    docker login -u admin -p $nexus-creds 127.0.0.1:8086
+
+                    docker push 127.0.0.1:8086/springbootapp:${VERSION}
+
+                    docker rmi 127.0.0.1:8086/springbootapp:${VERSION}
+                    '''
+            }
+
+
+            }
+            }
+        }
+    }
+}
