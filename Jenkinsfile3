@@ -78,7 +78,6 @@ pipeline{
                     withCredentials([string(credentialsId: 'nexus-password', variable: 'nexus_variable')]) {
                         dir('kubernetes/') {
                             sh'''
-                            // docker login -u admin -p $nexus_variable 127.0.0.1:8086
                             helmversion=$(helm show chart myapp| grep version| cut -d: -f 2| tr -d ' ')
                             tar -czvf myapp-${helmversion}.tgz myapp/
                             curl -u admin:$nexus_variable http://127.0.0.1:8081/repository/helm-hosted/ --upload-file myapp-${helmversion}.tgz -v
