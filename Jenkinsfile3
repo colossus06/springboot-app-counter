@@ -28,11 +28,11 @@ pipeline{
                 script{
                     withSonarQubeEnv(credentialsId: 'sonar-token') {
                     sh 'mvn clean package sonar:sonar'
-              }
-            }
+                    }
+                }
 
             }
-          }
+        }
         stage("Quality Gate Status"){
             steps{
                 script{
@@ -40,7 +40,6 @@ pipeline{
                 }
             }
         }
-
         // Uploading Docker images into Nexus Registry
         stage('Uploading to Nexus') {
             steps{
@@ -58,17 +57,12 @@ pipeline{
         stage("identifying misconfigurations"){
             steps{
                 script{
-                    // dir('kubernetes/myapp/') {
-                    //     withEnv(['DATREE_TOKEN=1eac0b97-8252-4d88-bc19-23118f8f3409']) {
-                    //         sh 'helm datree test .'
-                    //     }
-                    // }
                     withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {                        
                         dir('kubernetes/myapp') {
                             // run a policy check against kubernetes files
                             sh'helm datree test .'
-                            }
                         }
+                    }
                 }
             }
         }
@@ -82,14 +76,15 @@ pipeline{
                             tar -czvf myapp-${helmversion}.tgz myapp/
                             curl -u admin:$nexus_variable http://127.0.0.1:8081/repository/helm-hosted/ --upload-file myapp-${helmversion}.tgz -v
                             '''
- 
-                            // sh'''
-                            // helmversion=$(helm show chart myapp| grep version| cut -d: -f 2| tr -d ' ')
-                            // tar -czvf myapp-${helmversion}.tgz myapp/
-                            // curl -u admin:$nexus_cred http://127.0.0.1:8081/repository/helm-hosted/ --upload-file myapp-${helmversion}.tgz -v
-                            // '''
                         }
                     }
+                }
+            }
+        }
+        stage("Deploy to minikube"){
+            steps{
+                script{
+                    kubernetesDeploy (configs: 'deployment.yaml', kubeconfigId: 'k8sconfig_pwd')
                 }
             }
         }
