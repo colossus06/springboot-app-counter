@@ -2,6 +2,7 @@ pipeline{
     agent any
     // tagging builds with build id
     environment {
+        VERSION = "${env.BUILD_ID}"
         imageName = "springbootapp"
         registryCredentials = "nexus"
         registry = "127.0.0.1:8086/"
@@ -81,16 +82,18 @@ pipeline{
                 }
             }
         }
-        stage("Deploy to minikube"){
-            steps{
+        stage('Deploy app on k8s cluster') {
+            steps {
                 script{
-                    dir('kubernetes/myapp/templates'){
-                    kubernetesDeploy (configs: 'deployment.yaml', kubeconfigId: 'k8sconfig_pwd')
+                    withCredentials([kubeconfigFile(credentialsId: 'kubernetes-config', variable: 'KUBECONFIG')]) {
+                        dir('kubernetes/') {
+                            sh 'helm list'
+                            sh 'helm upgrade --install --set image.repository="127.0.0.1:8086/springbootapp" --set image.tag="${VERSION}" sprinboot myapp/ '
+                        }
                     }
                 }
             }
         }
-    }
 
     // post {
 	// 	always {
