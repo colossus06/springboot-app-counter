@@ -84,8 +84,9 @@ pipeline{
         stage("Deploy to minikube"){
             steps{
                 script{
-                    dir('kubernetes/myapp/templates')
+                    dir('kubernetes/myapp/templates'){
                     kubernetesDeploy (configs: 'deployment.yaml', kubeconfigId: 'k8sconfig_pwd')
+                    }
                 }
             }
         }
