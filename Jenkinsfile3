@@ -23,49 +23,49 @@ pipeline{
                 }
             }
         }
-        stage("build & SonarQube analysis") {
-            steps {
-                script{
-                    withSonarQubeEnv(credentialsId: 'sonar-token') {
-                    sh 'mvn clean package sonar:sonar'
-                    }
-                }
+        // stage("build & SonarQube analysis") {
+        //     steps {
+        //         script{
+        //             withSonarQubeEnv(credentialsId: 'sonar-token') {
+        //             sh 'mvn clean package sonar:sonar'
+        //             }
+        //         }
 
-            }
-        }
-        stage("Quality Gate Status"){
-            steps{
-                script{
-                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
-                }
-            }
-        }
+        //     }
+        // }
+        // stage("Quality Gate Status"){
+        //     steps{
+        //         script{
+        //             waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+        //         }
+        //     }
+        // }
         // Uploading Docker images into Nexus Registry
-        stage('Uploading to Nexus') {
-            steps{
-                script {
-                    docker.withRegistry('http://'+registry, registryCredentials) {
-                    def customImage = docker.build("${imageName}:${env.BUILD_ID}")
-                    /* Push the container to the custom Registry */
-                    customImage.push()
-                    // docker.withRegistry( 'http://'+registry, registryCredentials ) {
-                    // dockerImage.push('env.BUILD_ID')
-                    }
-                }
-            }
-        }
-        stage("identifying misconfigurations"){
-            steps{
-                script{
-                    withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {                        
-                        dir('kubernetes/myapp') {
-                            // run a policy check against kubernetes files
-                            sh'helm datree test .'
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Uploading to Nexus') {
+        //     steps{
+        //         script {
+        //             docker.withRegistry('http://'+registry, registryCredentials) {
+        //             def customImage = docker.build("${imageName}:${env.BUILD_ID}")
+        //             /* Push the container to the custom Registry */
+        //             customImage.push()
+        //             // docker.withRegistry( 'http://'+registry, registryCredentials ) {
+        //             // dockerImage.push('env.BUILD_ID')
+        //             }
+        //         }
+        //     }
+        // }
+        // stage("identifying misconfigurations"){
+        //     steps{
+        //         script{
+        //             withCredentials([string(credentialsId: 'datree-token', variable: 'datree')]) {                        
+        //                 dir('kubernetes/myapp') {
+        //                     // run a policy check against kubernetes files
+        //                     sh'helm datree test .'
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         stage("pushing helm chart to nexus repo"){
             steps{
                 script{
@@ -84,15 +84,16 @@ pipeline{
         stage("Deploy to minikube"){
             steps{
                 script{
+                    dir('kubernetes/myapp/templates')
                     kubernetesDeploy (configs: 'deployment.yaml', kubeconfigId: 'k8sconfig_pwd')
                 }
             }
         }
     }
 
-    post {
-		always {
-			mail bcc: '', body: "<br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'denizkavuk86@gmail.com', mimeType: 'text/html', replyTo: '', subject: "${currentBuild.result} CI: Project name -> ${env.JOB_NAME}", to: "denizkavuk86@gmail.com";  
-		}
-	}
+    // post {
+	// 	always {
+	// 		mail bcc: '', body: "<br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: 'denizkavuk86@gmail.com', mimeType: 'text/html', replyTo: '', subject: "${currentBuild.result} CI: Project name -> ${env.JOB_NAME}", to: "denizkavuk86@gmail.com";  
+	// 	}
+	// }
 }
